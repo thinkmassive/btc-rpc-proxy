@@ -41,12 +41,31 @@ This feature is only available for Linux and only if the `systemd` feature is en
 Disabling it can decrease compile time and binary size but please keep it enabled if you intend to distribute the binary so that the users can benefit from it.
 Especially in case of packaged software.
 
+### Docker
+
+A sample `docker-compose.yaml` is included. It deploys a pruned bitcoind running in a container called `bitcoind`, and an rpc-proxy in container `bitcoind-proxy`. The node container listens on the standard ports (rpc u/p: `proxy` / `foobar`), and the proxy listens on 8331 (rpc u/p: `public` / `public`)
+
+Note the `--conf` parameter in `command`. Even though it uses the default location, without this parameter the config is not loaded.
+
+```bash
+docker-compose up -d
+
+docker run -it --rm \
+    --name bitcoin-cli \
+    --net host \
+    --entrypoint bitcoin-cli \
+    lncm/bitcoind:v0.21.1 \
+    -rpcconnect=127.0.0.1:8331 -rpcuser=public -rpcpassword=public \
+    getblockchaininfo
+```
+
 ## Limitations
 
 * It uses `serde_json`, which allocates during deserialization (`Value`). Expect a bit lower performance than without proxy.
 * Logging can't be configured yet.
 * No support for changing UID.
 * No support for Unix sockets.
+* No support for DNS names, only IP for `bitcoind_address`.
 * Redirect instead of blocking might be a useful feaure, which is now lacking.
 
 License

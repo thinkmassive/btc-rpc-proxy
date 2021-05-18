@@ -1,0 +1,35 @@
+---
+version: '2.1'
+
+volumes:
+  bitcoind-data:
+    # Uncomment below if you created an external volume: docker volume create bitcoind-data
+    #external: true
+
+services:
+  bitcoind:
+    image: lncm/bitcoind:v0.21.1
+    volumes:
+      - bitcoind-data:/data/.bitcoin
+    ports:
+      - "8332:8332"
+      - "8333:8333"
+    command:
+      - "-server"
+      - "-rpcbind=0.0.0.0"
+      - "-rpcallowip=0.0.0.0/0"
+      - "-rpcuser=proxy"
+      - "-rpcpassword=foobar"
+      - "-prune=2048"
+  bitcoind-proxy:
+    # Comment the 'build' section and update 'image' if you built the image elsewhere 
+    build:
+      context: .
+    image: btc-rpc-proxy:test
+    # Edit the sample config file, or replace the first path below with your own
+    volumes:
+      - ./btc_rpc_proxy.toml:/etc/bitcoin/rpc_proxy.toml:z
+    ports:
+      - "8331:8331"
+    network_mode: "host"
+    command: ["btc_rpc_proxy", "--conf", "/etc/bitcoin/rpc_proxy.toml", "-v"]
